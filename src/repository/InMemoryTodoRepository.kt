@@ -18,15 +18,15 @@ class InMemoryTodoRepository: TodoRepository {
         return todo
     }
 
-    override suspend fun getById(id: String): Todo? {
+    override suspend fun getById(id: Int): Todo? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override suspend fun remove(id: String) = TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override suspend fun remove(id: Int) = TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 
     override suspend fun remove(todo: Todo) {
         if(!todos.contains(todo)) {
-            throw IllegalArgumentException("No todo found for ${todo}.")
+            throw IllegalArgumentException("No todo found for ${todo.id}.")
         } else {
             todos.remove(todo);
         }

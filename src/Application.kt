@@ -2,8 +2,6 @@ package com.test
 
 import com.couchbase.client.java.*
 import com.ryanharter.ktor.moshi.*
-import com.squareup.moshi.*
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.test.api.*
 import com.test.repository.*
 import com.test.routes.*
@@ -13,10 +11,27 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import java.util.*
-import java.util.logging.Level.FINE
-import com.sun.org.apache.xerces.internal.util.DOMUtil.getParent
-import java.util.logging.*
 
+const val API_VERSION = "/api/v1";
+
+object Configuration {
+    private val properties: Properties = Properties()
+
+    val databaseHost: String?
+    val databaseUser: String?
+    val databasePassword: String?
+    val databaseBucketName: String?
+
+    init {
+        this.javaClass.getResourceAsStream("/app.properties").use { stream ->
+            properties.load(stream)
+        }
+        databaseHost = properties.getProperty("database.host")
+        databaseBucketName = properties.getProperty("database.bucket")
+        databaseUser = properties.getProperty("database.user")
+        databasePassword = properties.getProperty("database.password")
+    }
+}
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -52,9 +67,9 @@ fun Application.module(testing: Boolean = false) {
     //val db = InMemoryTodoRepository()
 
     // COUCHBASE REP
-    val couchbaseCluster = CouchbaseCluster.create("localhost")
-    couchbaseCluster.authenticate("admin", "password")
-    val todoBucket = couchbaseCluster.openBucket("todo")
+    val couchbaseCluster = CouchbaseCluster.create(Configuration.databaseHost)
+    couchbaseCluster.authenticate(Configuration.databaseUser, Configuration.databasePassword)
+    val todoBucket = couchbaseCluster.openBucket(Configuration.databaseBucketName)
     todoBucket.bucketManager().createN1qlPrimaryIndex(true, false);
     val db = CouchbaseTodoRepository(todoBucket)
 
@@ -65,6 +80,5 @@ fun Application.module(testing: Boolean = false) {
     }
 }
 
-const val API_VERSION = "/api/v1";
 
 
