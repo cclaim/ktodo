@@ -4,6 +4,9 @@ import com.couchbase.client.java.*
 import com.couchbase.client.java.document.*
 import com.couchbase.client.java.document.json.*
 import com.couchbase.client.java.query.*
+import com.couchbase.client.java.query.Select.select
+import com.couchbase.client.java.query.Delete.deleteFrom
+import com.couchbase.client.java.query.dsl.Expression.*
 import com.squareup.moshi.*
 import com.test.model.*
 
@@ -51,11 +54,42 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
     }
 
     override suspend fun getById(id: Int): Todo? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val statement = select("id", "description", "isDone")
+            .from(i("todo"))
+            .where(x("id").eq(x("$id")))
+        val placeholderValues = JsonObject.create().put("id", id)
+        val query = N1qlQuery.parameterized(statement, placeholderValues)
+        val result = bucket.query(query)
+
+        val moshi = Moshi.Builder().build()
+        val adapter = moshi.adapter(Todo::class.java)
+        val todo = adapter.fromJson(result.first().toString())!!
+
+        return todo;
+    }
+
+    override suspend fun update(id: Int, todo: Todo): Todo? {
+        val statement = com.couchbase.client.java.query.Update.update("todo")
+            .set("description", todo.description)
+            .set("isDone", todo.isDone)
+            .where(x("id").eq(x("$id")))
+        val placeholderValues = JsonObject.create()
+            .put("id", id)
+        val query = N1qlQuery.parameterized(statement, placeholderValues)
+        val result = bucket.query(query)
+        return getById(id);
     }
 
     override suspend fun remove(id: Int): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val statement = deleteFrom("todo")
+            .where(x("id").eq(x("$id")))
+        val query = N1qlQuery.simple(statement)
+        val result = bucket.query(query)
+        if (!result.finalSuccess()) {
+            throw Exception("Query error: " + result.errors())
+        } else {
+            return true
+        }
     }
 
     override suspend fun remove(todo: Todo) {

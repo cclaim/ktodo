@@ -47,6 +47,11 @@ fun Application.module(testing: Boolean = false) {
             )
         }
     }
+    install(CORS) {
+        host("localhost:3000")
+        method(HttpMethod.Delete)
+        method(HttpMethod.Put)
+    }
 
     install(ContentNegotiation) {
         moshi {
