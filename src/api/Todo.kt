@@ -7,7 +7,6 @@ import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import java.lang.IllegalArgumentException
 
 const val TODO_ENDPOINT = "$API_VERSION/todo"
 

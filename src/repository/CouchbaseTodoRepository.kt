@@ -4,9 +4,10 @@ import com.couchbase.client.java.*
 import com.couchbase.client.java.document.*
 import com.couchbase.client.java.document.json.*
 import com.couchbase.client.java.query.*
-import com.couchbase.client.java.query.Select.select
 import com.couchbase.client.java.query.Delete.deleteFrom
-import com.couchbase.client.java.query.dsl.Expression.*
+import com.couchbase.client.java.query.Select.select
+import com.couchbase.client.java.query.dsl.Expression.i
+import com.couchbase.client.java.query.dsl.Expression.x
 import com.squareup.moshi.*
 import com.test.model.*
 
@@ -26,7 +27,7 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
         val adapter : JsonAdapter<List<Todo>> = moshi.adapter(adapterType)
         val todos: List<Todo> = adapter.fromJson(result.allRows().toString())!!
 
-        return todos;
+        return todos
     }
 
     override suspend fun clear() {
@@ -36,12 +37,12 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
             )
         )
         if (!result.finalSuccess()) {
-            throw Exception("Query error: " + result.errors());
+            throw Exception("Query error: " + result.errors())
         }
     }
 
     override suspend fun add(todo: Todo): Todo {
-        val nextId = bucket.counter("idGeneratorForTodos", 1, 0).content();
+        val nextId = bucket.counter("idGeneratorForTodos", 1, 0).content()
         val id = TODO_ID_PREFIX + nextId
         todo.id = nextId.toInt()
 
@@ -49,7 +50,7 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
         val jsonAdapter = moshi.adapter(Todo::class.java)
         val todoJson = jsonAdapter.toJson(todo)
 
-        bucket.upsert(JsonDocument.create(id, JsonObject.fromJson(todoJson)));
+        bucket.upsert(JsonDocument.create(id, JsonObject.fromJson(todoJson)))
         return todo
     }
 
@@ -65,7 +66,7 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
         val adapter = moshi.adapter(Todo::class.java)
         val todo = adapter.fromJson(result.first().toString())!!
 
-        return todo;
+        return todo
     }
 
     override suspend fun update(id: Int, todo: Todo): Todo? {
@@ -77,7 +78,7 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
             .put("id", id)
         val query = N1qlQuery.parameterized(statement, placeholderValues)
         val result = bucket.query(query)
-        return getById(id);
+        return getById(id)
     }
 
     override suspend fun remove(id: Int): Boolean {

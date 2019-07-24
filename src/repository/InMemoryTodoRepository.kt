@@ -1,10 +1,7 @@
 package com.test.repository
 
 import com.test.model.*
-import java.lang.IllegalArgumentException
-import java.util.*
 import java.util.concurrent.atomic.*
-import kotlin.collections.ArrayList
 
 class InMemoryTodoRepository: TodoRepository {
     override suspend fun update(id: Int, todo: Todo): Todo? {
@@ -32,7 +29,7 @@ class InMemoryTodoRepository: TodoRepository {
         if(!todos.contains(todo)) {
             throw IllegalArgumentException("No todo found for ${todo.id}.")
         } else {
-            todos.remove(todo);
+            todos.remove(todo)
         }
     }
 

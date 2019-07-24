@@ -1,7 +1,6 @@
 package com.test.repository
 
 import com.test.model.*
-import java.util.*
 
 interface TodoRepository {
     suspend fun add(todo: Todo): Todo

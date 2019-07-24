@@ -12,7 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import java.util.*
 
-const val API_VERSION = "/api/v1";
+const val API_VERSION = "/api/v1"
 
 object Configuration {
     private val properties: Properties = Properties()
@@ -23,9 +23,10 @@ object Configuration {
     val databaseBucketName: String?
 
     init {
-        this.javaClass.getResourceAsStream("/app.properties").use { stream ->
-            properties.load(stream)
-        }
+        this.javaClass.getResourceAsStream("/app.properties")
+            .use { stream ->
+                properties.load(stream)
+            }
         databaseHost = properties.getProperty("database.host")
         databaseBucketName = properties.getProperty("database.bucket")
         databaseUser = properties.getProperty("database.user")
@@ -54,18 +55,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(ContentNegotiation) {
-        moshi {
-            /*add(UUID::class.java, object: JsonAdapter<UUID>() {
-                override fun toJson(writer: JsonWriter, value: UUID?) {
-                    writer.value(value.toString())
-                }
-
-                override fun fromJson(reader: JsonReader): UUID? {
-                    return UUID.fromString(reader.nextString())
-                }
-            })
-            add(KotlinJsonAdapterFactory())*/
-        }
+        moshi()
     }
 
     // IN MEMORY REP
@@ -75,9 +65,10 @@ fun Application.module(testing: Boolean = false) {
     val couchbaseCluster = CouchbaseCluster.create(Configuration.databaseHost)
     couchbaseCluster.authenticate(Configuration.databaseUser, Configuration.databasePassword)
     val todoBucket = couchbaseCluster.openBucket(Configuration.databaseBucketName)
-    todoBucket.bucketManager().createN1qlPrimaryIndex(true, false);
+    todoBucket.bucketManager().createN1qlPrimaryIndex(true, false)
     val db = CouchbaseTodoRepository(todoBucket)
 
+    // Routing
     routing {
         home()
         about()
