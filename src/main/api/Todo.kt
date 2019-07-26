@@ -4,9 +4,13 @@ import com.test.*
 import com.test.model.*
 import com.test.repository.*
 import io.ktor.application.*
+import io.ktor.http.content.*
+import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.*
+import java.io.*
 
 const val TODO_ENDPOINT = "$API_VERSION/todo"
 
@@ -52,6 +56,4 @@ fun Route.todo(db: TodoRepository) {
         db.remove(todoId)
         call.respondText("Done")
     }
-
-
 }
