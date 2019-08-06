@@ -45,6 +45,7 @@ fun Application.module(testing: Boolean = false) {
     install(DefaultHeaders)
     install(StatusPages) {
         exception<Throwable> { e ->
+            log.error("Error : ", e)
             call.respondText(e.localizedMessage,
                 ContentType.Text.Plain, HttpStatusCode.InternalServerError
             )
@@ -73,8 +74,8 @@ fun Application.module(testing: Boolean = false) {
 
     // Routing
     routing {
-        home()
-        about()
+        /*home()
+        about()*/
         todo(todoRepository)
         upload(uploadRepository)
     }

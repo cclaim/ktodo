@@ -6,8 +6,7 @@ import com.couchbase.client.java.document.json.*
 import com.couchbase.client.java.query.*
 import com.couchbase.client.java.query.Delete.deleteFrom
 import com.couchbase.client.java.query.Select.select
-import com.couchbase.client.java.query.dsl.Expression.i
-import com.couchbase.client.java.query.dsl.Expression.x
+import com.couchbase.client.java.query.dsl.Expression.*
 import com.squareup.moshi.*
 import com.test.model.*
 
@@ -18,7 +17,7 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
     override suspend fun all(): List<Todo> {
         val result = bucket.query(
             N1qlQuery.simple(
-                "SELECT id, description, isDone FROM `todo` WHERE type = \"todo\""
+                "SELECT identifier, description, isDone FROM `todo` WHERE type = \"todo\""
             )
         )
 
@@ -44,22 +43,21 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
     override suspend fun add(todo: Todo): Todo {
         val nextId = bucket.counter("idGeneratorForTodos", 1, 0).content()
         val id = TODO_ID_PREFIX + nextId
-        todo.id = nextId.toInt()
 
         val moshi = Moshi.Builder().build()
         val jsonAdapter = moshi.adapter(Todo::class.java)
         val todoJson = jsonAdapter.toJson(todo)
 
-        bucket.upsert(JsonDocument.create(id, JsonObject.fromJson(todoJson)))
+        bucket.insert(JsonDocument.create(id, JsonObject.fromJson(todoJson)))
         return todo
     }
 
-    override suspend fun getById(id: Int): Todo? {
-        val statement = select("id", "description", "isDone")
+    override suspend fun getByIdentifier(identifier: String): Todo? {
+        val statement = select("identifier", "description", "isDone")
             .from(i("todo"))
-            .where(x("id").eq(x("$id")))
-        val placeholderValues = JsonObject.create().put("id", id)
-        val query = N1qlQuery.parameterized(statement, placeholderValues)
+            .where(x("identifier").eq(s(identifier)))
+        val query = N1qlQuery.simple(statement)
+        println(query)
         val result = bucket.query(query)
 
         val moshi = Moshi.Builder().build()
@@ -69,21 +67,24 @@ class CouchbaseTodoRepository(val bucket: Bucket): TodoRepository {
         return todo
     }
 
-    override suspend fun update(id: Int, todo: Todo): Todo? {
+    override suspend fun update(todo: Todo): Todo? {
+        val identifier = todo.identifier
         val statement = com.couchbase.client.java.query.Update.update("todo")
             .set("description", todo.description)
             .set("isDone", todo.isDone)
-            .where(x("id").eq(x("$id")))
+            .where(x("identifier").eq(s(identifier)))
         val placeholderValues = JsonObject.create()
-            .put("id", id)
+            .put("identifier", identifier)
+
         val query = N1qlQuery.parameterized(statement, placeholderValues)
-        val result = bucket.query(query)
-        return getById(id)
+        bucket.query(query)
+
+        return getByIdentifier(identifier)
     }
 
-    override suspend fun remove(id: Int): Boolean {
+    override suspend fun remove(identifier: String): Boolean {
         val statement = deleteFrom("todo")
-            .where(x("id").eq(x("$id")))
+            .where(x("identifier").eq(s(identifier)))
         val query = N1qlQuery.simple(statement)
         val result = bucket.query(query)
         if (!result.finalSuccess()) {

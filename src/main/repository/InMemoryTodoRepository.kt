@@ -4,7 +4,7 @@ import com.test.model.*
 import java.util.concurrent.atomic.*
 
 class InMemoryTodoRepository: TodoRepository {
-    override suspend fun update(id: Int, todo: Todo): Todo? {
+    override suspend fun update(todo: Todo): Todo? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -19,15 +19,15 @@ class InMemoryTodoRepository: TodoRepository {
         return todo
     }
 
-    override suspend fun getById(id: Int): Todo? {
+    override suspend fun getByIdentifier(identifier: String): Todo? {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override suspend fun remove(id: Int) = TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override suspend fun remove(identifier: String) = TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 
     override suspend fun remove(todo: Todo) {
         if(!todos.contains(todo)) {
-            throw IllegalArgumentException("No todo found for ${todo.id}.")
+            throw IllegalArgumentException("No todo found for ${todo.identifier}.")
         } else {
             todos.remove(todo)
         }
